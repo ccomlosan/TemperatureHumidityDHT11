@@ -1,0 +1,32 @@
+﻿<Page
+    x:Class="TemperatureHumidityDHT11.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:TemperatureHumidityDHT11"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d">
+
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+        <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Center">
+            <TextBlock x:Name="textBlockTimer" Margin="7" Text="..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
+            <TextBlock x:Name="textBlockPins" Margin="7" Text="..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
+            <Button x:Name="buttonTemperatureHumidity" Margin="7" Content="Read DHT11" HorizontalAlignment="Center" Click="buttonTemperatureHumidity_Click"/>
+            <TextBlock x:Name="textBlockTemperatureHumidity" Margin="7" Text="..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16"/>
+
+            <!--TextBox x:Name="textBoxReads" Margin="7" Text="10" HorizontalAlignment="Center"/>
+            <TextBox x:Name="textBoxWrites" Margin="7" Text="10" HorizontalAlignment="Center"/>
+
+
+            <Button x:Name="buttonTestPins" Margin="7" Content="PinsTest" HorizontalAlignment="Center" Click="buttonTestPins_Click"/>
+            <TextBlock x:Name="textBlockPins" Margin="7" Text="..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/-->
+
+
+            <TextBlock x:Name="textBlockStatus" Margin="7" Text="Waiting for Gpio..." HorizontalAlignment="Center" FontSize="16"/>
+            <Button x:Name="buttonExit" Content="Exit" Margin="7" HorizontalAlignment="Center" Click="buttonExit_Click"/>
+        </StackPanel>
+
+
+    </Grid>
+</Page>
