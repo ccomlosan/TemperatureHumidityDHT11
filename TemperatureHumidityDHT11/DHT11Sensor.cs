@@ -10,7 +10,8 @@ namespace TemperatureHumidityDHT11
             Sucess = 0,
             StartSignalLowNotSet = 1,
             ReadValueTimeout = 2,
-            ReadValueNotDetected = 3
+            ReadValueNotDetected = 3, 
+            ReadValueToShort = 4
 
         };
         enum Context
@@ -31,68 +32,93 @@ namespace TemperatureHumidityDHT11
             cronometer_.start();
         }
 
+        /// <summary>
+        /// initialize the sensor
+        /// </summary>
         public void initialize()
         {
             cronometer_.start();
         }
 
+        /// <summary>
+        /// Resets the data members, errors and time related members.
+        /// </summary>
         private void reset()
         {
-            for (int i = 0; i < SIZE; i++)
-            {
+            for (int i = 0; i < SIZE; i++) {
                 data_[i] = 0;
             }
             error_ = Error.Sucess;
             context_ = Context.Null;
+            strError_ = "";
+            cronometer_.stop();
+            cronometer_.start();
         }
 
+        /// <summary>
+        /// Gets the array of 4 bytes, where it reads the humidity and temperature.
+        /// </summary>
+        /// <param name="data">
+        /// Humidity and temperature, d[0] decimal humidity part, d[1] fractional 
+        /// humidity part, d[2] decimal temperature part, d[3] fractional temperature
+        /// </param>
         public void getData(int []data)
         {
-            if (data.Length >= SIZE - 1)
-            {
-                for(int i = 0; i < SIZE - 2; i++)
-                {
+            if (data.Length >= SIZE - 1) {
+                for(int i = 0; i < SIZE - 2; i++) {
                     data[i] = data_[i];
                 }
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="testPin"></param>
+        /// <param name="n"></param>
+        /// <returns></returns>
         public float measureTicksPerRead(GpioPin testPin, int n)
         {
             testPin.SetDriveMode(GpioPinDriveMode.Input);
             long t1 = cronometer_.ticks;
-            for (int i = 1; i < n; i++)
-            {
+            for (int i = 1; i < n; i++) {
                 GpioPinValue val =  testPin.Read();
             }
             long t2 = cronometer_.ticks;
             ticksPerRead_ = t2 - t1;
-            usPerRead_ = cronometer_.ticksToUs(ticksPerRead_)/n;
+            usPerRead_ = (float)cronometer_.ticksToUs(ticksPerRead_)/(float)n;
             return usPerRead_;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="testPin"></param>
+        /// <param name="n"></param>
+        /// <returns></returns>
         public float measureUsPerWrite(GpioPin testPin, int n)
         {
             testPin.SetDriveMode(GpioPinDriveMode.Output);
             long t1 = cronometer_.ticks;
-            for (int i = 1; i < n; i++)
-            {
-                if (i % 2 == 0)
-                {
+            for (int i = 1; i < n; i++) {
+                if (i % 2 == 0) {
                     testPin.Write(GpioPinValue.Low);
                 }
-                else
-                {
+                else {
                     testPin.Write(GpioPinValue.High);
                 }
             }
             long t2 = cronometer_.ticks;
             ticksPerWrite_ = t2 - t1;
-            usPerWrite_ = cronometer_.ticksToUs(ticksPerWrite_)/n;
+            usPerWrite_ = (float)cronometer_.ticksToUs(ticksPerWrite_)/(float)n;
             return usPerWrite_;
         }
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         private Error sendStartSignal()
         {
             pin_.SetDriveMode(GpioPinDriveMode.Output);
@@ -113,11 +139,15 @@ namespace TemperatureHumidityDHT11
                     return Error.Sucess;
                 }
             }
-            context_ = Context.SendStartSignal;
+            strError_ += ", fn:sendStartSignal";
             error_ = Error.StartSignalLowNotSet;
             return error_;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         private Error waitForAcknowledge()
         {
             long dt;
@@ -127,50 +157,58 @@ namespace TemperatureHumidityDHT11
                     return Error.Sucess;
                 }
                 else {
-                    context_ = Context.WaitForAckReadHigh;
+                    strError_ += ", fn:WaitForAck ln:ReadHigh";
                 }
             }
             else {
-                context_ = Context.WaitForAckReadLow;
+                strError_ += ", fn:WaitForAck ln:ReadLow";
             }
 
             return error_;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         private Error readBits()
         {
             long dt;
             int j = 0;
-            for (int i = 1; i <= 40; i++)
-            {
-                if (readValue(GpioPinValue.Low, 70, out dt) == Error.Sucess)
-                {
-                    j = (i - 1) % 8;
+            for (int i = 1; i <= 40; i++) {
+                if (readValue(GpioPinValue.Low, 70, out dt) == Error.Sucess) {
+                    j = (i - 1) / 8;
                     data_[j] <<= 1;
-                    if (readValue(GpioPinValue.High, 90, out dt) == Error.Sucess)
-                    {
+                    if (readValue(GpioPinValue.High, 90, out dt) == Error.Sucess) {
                         if (dt >= 60) {
                             data_[j] |= 0x1;
+                        }
+                        else if (dt < 10) {
+                            strError_ += string.Format(", fn:ReadBits ln:ReadHighToShort dt:{0} bit:{1}", dt, i);
+                            return Error.ReadValueToShort;
                         }
                     }
                     else
                     {
-                        context_ = Context.ReadBitsReadHigh;
+                        strError_ += string.Format(", fn:ReadBits ln:ReadHigh dt:{0} bit:{1}", dt, i);
                         return error_;
                     }
                 }
                 else
                 {
-                    context_ = Context.ReadBitsReadLow;
+                    strError_ += string.Format(", fn:ReadBits ln:ReadLow dt:{0} bit:{1}", dt, i);
                     return error_;
                 }
                 
             }
-
             return Error.Sucess;
         }
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public bool read()
         {
             reset();
@@ -185,26 +223,34 @@ namespace TemperatureHumidityDHT11
             return false;
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public bool checkData()
         {
             return data_[4] == ((data_[3] + data_[2] + data_[1] + data_[0]) & 0xFF);
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="val"></param>
+        /// <param name="us"></param>
+        /// <param name="dt"></param>
+        /// <returns></returns>
         private Error readValue(GpioPinValue val, long us, out long dt)
         {
             GpioPinValue lastReadValue;
             int readsNr = 0;
-            long tend = cronometer_.getTickToWaitFor(us);
             long tstart = cronometer_.ticks;
-            do
-            {
+            long tend = cronometer_.getTickToWaitFor(us);
+            do {
                 lastReadValue = pin_.Read();
-                if (lastReadValue == val)
-                {
+                if (lastReadValue == val) {
                     readsNr++;
                 }
-                else
-                {
+                else {
                     break;
                 }
             }
@@ -212,15 +258,14 @@ namespace TemperatureHumidityDHT11
 
             dt = cronometer_.ticksToUs(cronometer_.ticks - tstart);
 
-            if (lastReadValue == val)
-            {
+            if (lastReadValue == val) {
+                strError_ += string.Format(", fn:ReadValue ln:Timeout dt:{0} us:{1} val:{2} reads:{3}", dt, us, val, readsNr);
                 error_ = Error.ReadValueTimeout;
                 return error_;
             }
-            else
-            {
-                if (readsNr == 0)
-                {
+            else {
+                if (readsNr == 0) {
+                    strError_ += string.Format(", fn:ReadValue ln:NotDetected dt:{0} us:{1} val:{2} reads:{3}", dt, us, val, readsNr);
                     error_ = Error.ReadValueNotDetected;
                     return error_;
                 }
@@ -228,9 +273,13 @@ namespace TemperatureHumidityDHT11
             }
         }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns></returns>
         public string getErrorString()
         {
-            return "Error=" + errorStrings[(int)error_] + ", context=" + contextStrings[(int)context_];
+            return strError_;
         }
 
         private const int SIZE = 5;
@@ -246,6 +295,7 @@ namespace TemperatureHumidityDHT11
         private Error error_ = Error.Sucess;
         private Context context_ = Context.Null;
 
+        private string strError_ = "";
         static private string []errorStrings = { "Sucess(0)", "StartSignalLowNotSet(1)",
             "ReadValueTimeout(2)", "ReadValueNotDetected(3)"};
         static private string []contextStrings = { "Null(0)", "SendStartSignal(1)", "WaitForAckReadLow(2)",
