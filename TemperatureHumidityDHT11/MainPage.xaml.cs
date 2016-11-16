@@ -135,8 +135,8 @@ namespace TemperatureHumidityDHT11
 
             if (sensor_ == null)
             {
-                textBlockTemperatureHumidity.Foreground = new SolidColorBrush(Windows.UI.Colors.Blue);
-                textBlockTemperatureHumidity.Text = string.Format("Temperature:{0}.{1}, humidity:{2}.{3} ({4}us)",
+              textBlockHumidityTemperature.Foreground = new SolidColorBrush(Windows.UI.Colors.Blue);
+              textBlockHumidityTemperature.Text = string.Format("Temperature:{0}.{1}, humidity:{2}.{3} ({4}us)",
                             data[0], data[1], data[2], data[3], c.ticksToUs(c.ticks - t));
 
                 return;
@@ -144,16 +144,16 @@ namespace TemperatureHumidityDHT11
 
             if (sensor_.read())
             {
-                sensor_.getData(data);
-                textBlockTemperatureHumidity.Foreground = new SolidColorBrush(Windows.UI.Colors.Blue);
-                textBlockTemperatureHumidity.Text = string.Format("Temperature:{0}.{1}, humidity:{2}.{3} ({4}us)",
+              sensor_.getData(data);
+              textBlockHumidityTemperature.Foreground = new SolidColorBrush(Windows.UI.Colors.Blue);
+              textBlockHumidityTemperature.Text = string.Format("Temperature:{0}.{1}, humidity:{2}.{3} ({4}us)",
                             data[0], data[1], data[2], data[3], c.ticksToUs(c.ticks - t));
             }
             else
             {
-                sensor_.getData(data);
-                textBlockTemperatureHumidity.Foreground = new SolidColorBrush(Windows.UI.Colors.Red);
-                textBlockTemperatureHumidity.Text = sensor_.getErrorString() + string.Format(", d[0]={0},d[1]={1},d[2]={2},d[3]={3} ({4}us)",
+              sensor_.getData(data);
+              textBlockHumidityTemperature.Foreground = new SolidColorBrush(Windows.UI.Colors.Red);
+              textBlockHumidityTemperature.Text = sensor_.getErrorString() + string.Format(", d[0]={0},d[1]={1},d[2]={2},d[3]={3} ({4}us)",
                             data[0], data[1], data[2], data[3], c.ticksToUs(c.ticks - t));
             }
         }

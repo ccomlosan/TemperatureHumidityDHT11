@@ -7,26 +7,50 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+    <SplitView IsPaneOpen="False" CompactPaneLength="50" OpenPaneLength="100" DisplayMode="CompactOverlay">
+        <SplitView.Pane>
+            <StackPanel Orientation="Horizontal">
+                <Button x:Name="buttonExit" Content="Exit" Width="40" Margin="7" Click="buttonExit_Click"/>
+            </StackPanel>
+        </SplitView.Pane>
+        <SplitView.Content>
+        <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Margin="10">
 
-        <StackPanel HorizontalAlignment="Stretch" VerticalAlignment="Center">
-            <TextBlock x:Name="textBlockTimer" Margin="7" Text="..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
-            <TextBlock x:Name="textBlockPins" Margin="7" Text="..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
-            <Button x:Name="buttonTemperatureHumidity" Margin="7" Content="Read DHT11" HorizontalAlignment="Center" Click="buttonTemperatureHumidity_Click"/>
-            <TextBlock x:Name="textBlockTemperatureHumidity" Margin="7" Text="..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16"/>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="600"/>
+            </Grid.ColumnDefinitions>
 
-            <!--TextBox x:Name="textBoxReads" Margin="7" Text="10" HorizontalAlignment="Center"/>
-            <TextBox x:Name="textBoxWrites" Margin="7" Text="10" HorizontalAlignment="Center"/>
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="System timer:"/>
+            <TextBox x:Name="textBlockTimer" Grid.Row="0" Grid.Column="1" Margin="7" 
+                     ScrollViewer.HorizontalScrollMode="Enabled" Text="..." IsReadOnly="True" HorizontalAlignment="Center" 
+                     VerticalAlignment="Center" FontSize="16"/>
+            
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Pins:"/>
+            <TextBox x:Name="textBlockPins" Grid.Row="1" Grid.Column="1" Margin="7" Text="..." IsReadOnly="True" 
+                     HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="Humidity-Temperature:"/>
+            <TextBox x:Name="textBlockHumidityTemperature" Grid.Row="2" Grid.Column="1" Margin="7" IsReadOnly="True" 
+                     Text="..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16"/>
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="Error:"/>
+            <TextBox x:Name="textBlockError" Grid.Row="3" Grid.Column="1" Margin="7" Text="..." IsReadOnly="True" 
+                     HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16"/>
+
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="Status:"/>
+            <TextBox x:Name="textBlockStatus" Grid.Row="4" Grid.Column="1" Margin="7" Text="Waiting for Gpio..." 
+                     IsReadOnly="True" HorizontalAlignment="Center" FontSize="16"/>
 
 
-            <Button x:Name="buttonTestPins" Margin="7" Content="PinsTest" HorizontalAlignment="Center" Click="buttonTestPins_Click"/>
-            <TextBlock x:Name="textBlockPins" Margin="7" Text="..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/-->
-
-
-            <TextBlock x:Name="textBlockStatus" Margin="7" Text="Waiting for Gpio..." HorizontalAlignment="Center" FontSize="16"/>
-            <Button x:Name="buttonExit" Content="Exit" Margin="7" HorizontalAlignment="Center" Click="buttonExit_Click"/>
-        </StackPanel>
-
-
-    </Grid>
+        </Grid>
+        </SplitView.Content>
+    </SplitView>
 </Page>

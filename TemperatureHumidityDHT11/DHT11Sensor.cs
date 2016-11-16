@@ -3,6 +3,9 @@ using Windows.Devices.Gpio;
 
 namespace TemperatureHumidityDHT11
 {
+    /// <summary>
+    /// 
+    /// </summary>
     class DHT11Sensor
     {
         enum Error
@@ -49,7 +52,6 @@ namespace TemperatureHumidityDHT11
                 data_[i] = 0;
             }
             error_ = Error.Sucess;
-            context_ = Context.Null;
             strError_ = "";
             cronometer_.stop();
             cronometer_.start();
@@ -132,20 +134,19 @@ namespace TemperatureHumidityDHT11
             pin_.SetDriveMode(GpioPinDriveMode.Input);
 
             int count = 0;
-            while(count++<100)
-            {
-                if (pin_.Read() == GpioPinValue.Low)
-                {
+            while(count++<100) {
+                if (pin_.Read() == GpioPinValue.Low) {
                     return Error.Sucess;
                 }
             }
-            strError_ += ", fn:sendStartSignal";
+            strError_ += ", fn:sendStartSignal err:LowNotRead";
             error_ = Error.StartSignalLowNotSet;
             return error_;
         }
 
         /// <summary>
-        /// 
+        /// Waits for the sensor acknowledge signal, pin pull down to low for
+        /// 80 us then pin pull up to high for 80 us.
         /// </summary>
         /// <returns></returns>
         private Error waitForAcknowledge()
@@ -157,18 +158,20 @@ namespace TemperatureHumidityDHT11
                     return Error.Sucess;
                 }
                 else {
-                    strError_ += ", fn:WaitForAck ln:ReadHigh";
+                    strError_ += ", fn:WaitForAck err:ReadHigh";
                 }
             }
             else {
-                strError_ += ", fn:WaitForAck ln:ReadLow";
+                strError_ += ", fn:WaitForAck err:ReadLow";
             }
 
             return error_;
         }
 
         /// <summary>
-        /// 
+        /// Reads the 40 bits of data. For each bit the sensor would pull down
+        /// the line for 50 us and then pull it up for 26-28 us for a 0 or 70 us 
+        /// for a 1.
         /// </summary>
         /// <returns></returns>
         private Error readBits()
@@ -184,19 +187,17 @@ namespace TemperatureHumidityDHT11
                             data_[j] |= 0x1;
                         }
                         else if (dt < 10) {
-                            strError_ += string.Format(", fn:ReadBits ln:ReadHighToShort dt:{0} bit:{1}", dt, i);
+                            strError_ += string.Format(", fn:ReadBits err:ReadHighToShort dt:{0} bit:{1}", dt, i);
                             return Error.ReadValueToShort;
                         }
                     }
-                    else
-                    {
-                        strError_ += string.Format(", fn:ReadBits ln:ReadHigh dt:{0} bit:{1}", dt, i);
+                    else {
+                        strError_ += string.Format(", fn:ReadBits err:ReadHigh dt:{0} bit:{1}", dt, i);
                         return error_;
                     }
                 }
-                else
-                {
-                    strError_ += string.Format(", fn:ReadBits ln:ReadLow dt:{0} bit:{1}", dt, i);
+                else {
+                    strError_ += string.Format(", fn:ReadBits err:ReadLow dt:{0} bit:{1}", dt, i);
                     return error_;
                 }
                 
@@ -206,25 +207,25 @@ namespace TemperatureHumidityDHT11
 
 
         /// <summary>
-        /// 
+        /// Reads the humidity and temperature from phisical sensor. It sends the
+        /// start signal by setting up the line to low fro 18 ms, then it waits for
+        /// the sensor to respond with an acknowledge followed by 40 bits of data.
         /// </summary>
         /// <returns></returns>
         public bool read()
         {
             reset();
-            if(sendStartSignal() == Error.Sucess)
-            {
-                if (waitForAcknowledge() == Error.Sucess)
-                {
+            if(sendStartSignal() == Error.Sucess) {
+                if (waitForAcknowledge() == Error.Sucess) {
                     return readBits() == Error.Sucess && checkData() == true;
-
                 }
             }
             return false;
         }
 
         /// <summary>
-        /// 
+        /// Verify the checksum for the read data, the last byte should be equal
+        /// with the sum of the rest.
         /// </summary>
         /// <returns></returns>
         public bool checkData()
@@ -233,11 +234,11 @@ namespace TemperatureHumidityDHT11
         }
 
         /// <summary>
-        /// 
+        /// Would read the pin until it has value = val or a timeout occurs.
         /// </summary>
-        /// <param name="val"></param>
-        /// <param name="us"></param>
-        /// <param name="dt"></param>
+        /// <param name="val">Value to be read</param>
+        /// <param name="us">The maximum time interval to read the value.</param>
+        /// <param name="dt">The time interval when the values was read.</param>
         /// <returns></returns>
         private Error readValue(GpioPinValue val, long us, out long dt)
         {
@@ -259,13 +260,13 @@ namespace TemperatureHumidityDHT11
             dt = cronometer_.ticksToUs(cronometer_.ticks - tstart);
 
             if (lastReadValue == val) {
-                strError_ += string.Format(", fn:ReadValue ln:Timeout dt:{0} us:{1} val:{2} reads:{3}", dt, us, val, readsNr);
+                strError_ += string.Format(", fn:ReadValue err:Timeout dt:{0} us:{1} val:{2} reads:{3}", dt, us, val, readsNr);
                 error_ = Error.ReadValueTimeout;
                 return error_;
             }
             else {
                 if (readsNr == 0) {
-                    strError_ += string.Format(", fn:ReadValue ln:NotDetected dt:{0} us:{1} val:{2} reads:{3}", dt, us, val, readsNr);
+                    strError_ += string.Format(", fn:ReadValue err:NotDetected dt:{0} us:{1} val:{2} reads:{3}", dt, us, val, readsNr);
                     error_ = Error.ReadValueNotDetected;
                     return error_;
                 }
@@ -274,7 +275,8 @@ namespace TemperatureHumidityDHT11
         }
 
         /// <summary>
-        /// 
+        /// Returns the error string that would contain: functions were the error
+        ///   occured, the error description, some useful variables.
         /// </summary>
         /// <returns></returns>
         public string getErrorString()
@@ -284,7 +286,6 @@ namespace TemperatureHumidityDHT11
 
         private const int SIZE = 5;
         private GpioPin pin_;
-        //private GpioPin testPin_;
         private long ticksPerWrite_ = 0;
         private float usPerWrite_ = 0;
         private long ticksPerRead_ = 0;
@@ -293,12 +294,6 @@ namespace TemperatureHumidityDHT11
         private int[] data_ = new int[SIZE];
 
         private Error error_ = Error.Sucess;
-        private Context context_ = Context.Null;
-
         private string strError_ = "";
-        static private string []errorStrings = { "Sucess(0)", "StartSignalLowNotSet(1)",
-            "ReadValueTimeout(2)", "ReadValueNotDetected(3)"};
-        static private string []contextStrings = { "Null(0)", "SendStartSignal(1)", "WaitForAckReadLow(2)",
-             "WaitForAckReadHigh(3)", "ReadBitsReadLow(4)", "ReadBitsReadHigh(5)"};
     }
 }
