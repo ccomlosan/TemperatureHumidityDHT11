@@ -7,10 +7,10 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <SplitView IsPaneOpen="False" CompactPaneLength="50" OpenPaneLength="100" DisplayMode="CompactOverlay">
+    <SplitView IsPaneOpen="False" CompactPaneLength="55" OpenPaneLength="100" DisplayMode="CompactOverlay">
         <SplitView.Pane>
             <StackPanel Orientation="Horizontal">
-                <Button x:Name="buttonExit" Content="Exit" Width="40" Margin="7" Click="buttonExit_Click"/>
+                <Button x:Name="buttonExit" Content="Exit" Width="45" Margin="5" Click="buttonExit_Click"/>
             </StackPanel>
         </SplitView.Pane>
         <SplitView.Content>
@@ -20,37 +20,40 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="600"/>
+                <ColumnDefinition Width="420"/>
             </Grid.ColumnDefinitions>
 
             <TextBlock Grid.Row="0" Grid.Column="0" Text="System timer:"/>
             <TextBox x:Name="textBlockTimer" Grid.Row="0" Grid.Column="1" Margin="7" 
-                     ScrollViewer.HorizontalScrollMode="Enabled" Text="..." IsReadOnly="True" HorizontalAlignment="Center" 
+                     ScrollViewer.HorizontalScrollMode="Enabled" Text="..." IsReadOnly="True" HorizontalAlignment="Left" 
                      VerticalAlignment="Center" FontSize="16"/>
             
             <TextBlock Grid.Row="1" Grid.Column="0" Text="Pins:"/>
             <TextBox x:Name="textBlockPins" Grid.Row="1" Grid.Column="1" Margin="7" Text="..." IsReadOnly="True" 
-                     HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
+                     HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="12"/>
 
-            <TextBlock Grid.Row="2" Grid.Column="0" Text="Humidity-Temperature:"/>
-            <TextBox x:Name="textBlockHumidityTemperature" Grid.Row="2" Grid.Column="1" Margin="7" IsReadOnly="True" 
-                     Text="..." HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16"/>
+            <TextBlock Grid.Row="2" Grid.Column="0"  Text="Hum Temp:"/>
+            <TextBox x:Name="textBoxHumidityTemperature" Grid.Row="2" Grid.Column="1" Margin="7" IsReadOnly="True" 
+                     Text="..." HorizontalAlignment="Left" VerticalAlignment="Center" FontSize="16"/>
 
             <TextBlock Grid.Row="3" Grid.Column="0" Text="Error:"/>
-            <TextBox x:Name="textBlockError" Grid.Row="3" Grid.Column="1" Margin="7" Text="..." IsReadOnly="True" 
-                     HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="16"/>
+            <TextBox x:Name="textBoxError" Grid.Row="3" Grid.Column="1" Margin="7" Text="..." IsReadOnly="True" 
+                     HorizontalAlignment="Left" VerticalAlignment="Center" Height="70" FontSize="12"/>
 
             <TextBlock Grid.Row="4" Grid.Column="0" Text="Status:"/>
-            <TextBox x:Name="textBlockStatus" Grid.Row="4" Grid.Column="1" Margin="7" Text="Waiting for Gpio..." 
-                     IsReadOnly="True" HorizontalAlignment="Center" FontSize="16"/>
-
-
-        </Grid>
+                <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">
+                    <TextBox x:Name="textBlockStatus"  Margin="7" Text="Waiting for Gpio..." 
+                            IsReadOnly="True" HorizontalAlignment="Left" FontSize="16"/>
+                    <Ellipse x:Name="ellipseTHLed" Grid.Row="4" Grid.Column="1" Margin="20" Height="30" Width="30" Fill="LightSalmon"/>
+                    <Ellipse x:Name="ellipseErrorLed" Grid.Row="4" Grid.Column="1" Margin="20" Height="30" Width="30" Fill="LightGreen"/>
+                </StackPanel>
+ 
+            </Grid>
         </SplitView.Content>
     </SplitView>
 </Page>

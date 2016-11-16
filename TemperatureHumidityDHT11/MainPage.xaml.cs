@@ -16,6 +16,7 @@ using Windows.UI.Xaml.Navigation;
 using System.Diagnostics;
 
 using Windows.Devices.Gpio;
+using Microsoft.IoT.Lightning.Providers;
 
 
 // The Blank Page item template is documented at http://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
@@ -35,7 +36,7 @@ namespace TemperatureHumidityDHT11
             if (dht11Pin_ != null)
             {
                 initializeSensor();
-                //initializeTimer();
+                initializeTimer();
             }
         }
 
@@ -49,20 +50,29 @@ namespace TemperatureHumidityDHT11
             textBlockPins.Text = string.Format("Pin read op {0}us, write op {1}us", tpr, tpw);
         }
 
-        //private void initializeTimer()
-        //{
-        //    timer_ = new DispatcherTimer();
-        //    timer_.Interval = TimeSpan.FromSeconds(5);
-        //    timer_.Tick += timerTick;
-        //    timer_.Start();
-        //}
+        private void initializeTimer()
+        {
+            timer_ = new DispatcherTimer();
+            timer_.Interval = TimeSpan.FromSeconds(3);
+            timer_.Tick += getTemperatureHumidity;
+            timer_.Start();
+        }
 
         /// <summary>
         /// 
         /// </summary>
         private bool initializeGpio()
         {
-            var gpio = GpioController.GetDefault();
+          if (LightningProvider.IsLightningEnabled) {
+
+            Windows.Devices.LowLevelDevicesController.DefaultProvider = LightningProvider.GetAggregateProvider();
+            textBlockStatus.Text = "Gpio using low level controller";
+          }
+          else {
+            textBlockStatus.Text = "Gpio using default driver";
+          }
+
+          var gpio = GpioController.GetDefault();
 
             if (gpio == null)
             {
@@ -126,34 +136,40 @@ namespace TemperatureHumidityDHT11
         //}
 
 
-        private void buttonTemperatureHumidity_Click(object sender, RoutedEventArgs e)
+        private void getTemperatureHumidity(object sender, object args)
         {
             int[] data = new int[4];
             PrecisionCronometer c = new PrecisionCronometer();
             c.start();
             long t = c.ticks;
-
+            DateTime tnow = DateTime.Now;
             if (sensor_ == null)
             {
-              textBlockHumidityTemperature.Foreground = new SolidColorBrush(Windows.UI.Colors.Blue);
-              textBlockHumidityTemperature.Text = string.Format("Temperature:{0}.{1}, humidity:{2}.{3} ({4}us)",
+              textBoxHumidityTemperature.Foreground = new SolidColorBrush(Windows.UI.Colors.Blue);
+              textBoxHumidityTemperature.Text = string.Format("Temperature:{0}.{1}, humidity:{2}.{3} ({4}us)",
                             data[0], data[1], data[2], data[3], c.ticksToUs(c.ticks - t));
 
                 return;
             }
 
-            if (sensor_.read())
+            ellipseErrorLed.Fill = new SolidColorBrush(Windows.UI.Colors.LightSalmon);
+            ellipseTHLed.Fill = new SolidColorBrush(Windows.UI.Colors.LightGreen);
+
+          if (sensor_.read())
             {
+              ellipseTHLed.Fill = new SolidColorBrush(Windows.UI.Colors.Green);
               sensor_.getData(data);
-              textBlockHumidityTemperature.Foreground = new SolidColorBrush(Windows.UI.Colors.Blue);
-              textBlockHumidityTemperature.Text = string.Format("Temperature:{0}.{1}, humidity:{2}.{3} ({4}us)",
-                            data[0], data[1], data[2], data[3], c.ticksToUs(c.ticks - t));
+              textBoxHumidityTemperature.Foreground = new SolidColorBrush(Windows.UI.Colors.Blue);
+              
+              textBoxHumidityTemperature.Text = string.Format("Hum:{0}.{1}, temp:{2}.{3} ({4}us) {5}",
+                            data[0], data[1], data[2], data[3], c.ticksToUs(c.ticks - t), tnow);
             }
             else
             {
+              ellipseErrorLed.Fill = new SolidColorBrush(Windows.UI.Colors.Red);
               sensor_.getData(data);
-              textBlockHumidityTemperature.Foreground = new SolidColorBrush(Windows.UI.Colors.Red);
-              textBlockHumidityTemperature.Text = sensor_.getErrorString() + string.Format(", d[0]={0},d[1]={1},d[2]={2},d[3]={3} ({4}us)",
+              textBoxError.Foreground = new SolidColorBrush(Windows.UI.Colors.Red);
+              textBoxError.Text = sensor_.getErrorString() + string.Format(", d[0]={0},d[1]={1},d[2]={2},d[3]={3} ({4}us)",
                             data[0], data[1], data[2], data[3], c.ticksToUs(c.ticks - t));
             }
         }
@@ -171,7 +187,7 @@ namespace TemperatureHumidityDHT11
         private GpioPin testPin_;
         private GpioPin dht11Pin_;
         private DHT11Sensor sensor_;
-        //private DispatcherTimer timer_;
+        private DispatcherTimer timer_;
         private PrecisionCronometer cronometer_ = new PrecisionCronometer();
 
     }
