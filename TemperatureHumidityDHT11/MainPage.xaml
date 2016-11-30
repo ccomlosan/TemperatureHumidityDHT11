@@ -49,8 +49,8 @@
                 <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Left">
                     <TextBox x:Name="textBlockStatus"  Margin="7" Text="Waiting for Gpio..." 
                             IsReadOnly="True" HorizontalAlignment="Left" FontSize="16"/>
-                    <Ellipse x:Name="ellipseTHLed" Grid.Row="4" Grid.Column="1" Margin="20" Height="30" Width="30" Fill="LightSalmon"/>
-                    <Ellipse x:Name="ellipseErrorLed" Grid.Row="4" Grid.Column="1" Margin="20" Height="30" Width="30" Fill="LightGreen"/>
+                    <Ellipse x:Name="ellipseTHLed"  Margin="20" Height="30" Width="30" Fill="LightSalmon"/>
+                    <Ellipse x:Name="ellipseErrorLed"  Margin="20" Height="30" Width="30" Fill="LightGreen"/>
                 </StackPanel>
  
             </Grid>
